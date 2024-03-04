@@ -93,7 +93,7 @@ vet: ## Run go vet against code.
 	goenv exec go vet ./...
 
 test: controllers/testdata/crds/cluster.x-k8s.io_clusters.yaml manifests generate fmt vet envtest ## Run tests.
-	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./... -coverprofile cover.out
+	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" goenv exec go test ./... -coverprofile cover.out
 
 ##@ Build
 
