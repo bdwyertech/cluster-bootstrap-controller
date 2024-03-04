@@ -7,7 +7,7 @@ VERSION ?= $(shell git describe --tags --always)
 # Strip off leading `v`: v0.12.0 -> 0.12.0
 # Seems to be idiomatic for chart versions: https://helm.sh/docs/topics/charts/#the-chart-file
 CHART_VERSION := $(shell echo $(VERSION) | sed 's/^v//')
-CHART_REGISTRY ?= ghcr.io/weaveworks/charts
+CHART_REGISTRY ?= ghcr.io/bdwyertech/weave-gitops-enterprise
 
 # CHANNELS define the bundle channels used in the bundle.
 # Add a new line here if you would like to change its default config. (E.g CHANNELS = "candidate,fast,stable")
@@ -33,7 +33,7 @@ BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 #
 # For example, running 'make bundle-build bundle-push catalog-build catalog-push' will build and push both
 # weave.works/cluster-bootstrap-controller-bundle:$VERSION and weave.works/cluster-bootstrap-controller-catalog:$VERSION.
-IMAGE_TAG_BASE ?= ghcr.io/weaveworks/cluster-bootstrap-controller
+IMAGE_TAG_BASE ?= ghcr.io/bdwyertech/cluster-bootstrap-controller
 
 # BUNDLE_IMG defines the image:tag used for the bundle.
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
@@ -87,10 +87,10 @@ generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
 fmt: ## Run go fmt against code.
-	go fmt ./...
+	goenv exec go fmt ./...
 
 vet: ## Run go vet against code.
-	go vet ./...
+	goenv exec go vet ./...
 
 test: controllers/testdata/crds/cluster.x-k8s.io_clusters.yaml manifests generate fmt vet envtest ## Run tests.
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./... -coverprofile cover.out
@@ -98,10 +98,10 @@ test: controllers/testdata/crds/cluster.x-k8s.io_clusters.yaml manifests generat
 ##@ Build
 
 build: generate fmt vet ## Build manager binary.
-	go build -o bin/manager main.go
+	goenv exec go build -o bin/manager main.go
 
 run: manifests generate fmt vet ## Run a controller from your host.
-	go run ./main.go
+	goenv exec go run ./main.go
 
 docker-build: test ## Build docker image with the manager.
 	docker build -t ${IMG} .
@@ -144,9 +144,9 @@ define go-get-tool
 set -e ;\
 TMP_DIR=$$(mktemp -d) ;\
 cd $$TMP_DIR ;\
-go mod init tmp ;\
+goenv exec go mod init tmp ;\
 echo "Downloading $(2)" ;\
-GOBIN=$(PROJECT_DIR)/bin go install $(2) ;\
+GOBIN=$(PROJECT_DIR)/bin goenv exec go install $(2) ;\
 rm -rf $$TMP_DIR ;\
 }
 endef
